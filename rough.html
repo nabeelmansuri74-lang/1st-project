@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon – Pikachu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─────────────────────────────────────────
+       CSS VARIABLES & RESET
+    ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow-light : #F5C518;   /* left half  */
+      --yellow-dark  : #E6A800;   /* right half */
+      --cream        : #FDF5DC;
+      --black        : #111111;
+      --dot-active   : #111111;
+      --dot-inactive : rgba(17,17,17,0.3);
+
+      --font-display : 'Bebas Neue', cursive;
+      --font-body    : 'DM Sans', sans-serif;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ─────────────────────────────────────────
+       PAGE WRAPPER  –  the split background
+    ───────────────────────────────────────── */
+    .page {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+
+      /* vertical split via linear-gradient */
+      background: linear-gradient(
+        to right,
+        var(--yellow-light) 0%,
+        var(--yellow-light) 50%,
+        var(--yellow-dark)  50%,
+        var(--yellow-dark)  100%
+      );
+
+      display: flex;
+      flex-direction: column;
+    }
+
+       /* ─────────────────────────────────────────
+       POKÉBALL WATERMARK  (bottom-left, partially visible)
+       Circle is shifted so only the right portion peeks in.
+    ───────────────────────────────────────── */
+    .page::before {
+      content: '';
+      position: absolute;
+      bottom: -0px;
+      left: -20px;          /* partially off-screen — only right arc visible */
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 34px solid rgba(0,0,0,0.09);
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* horizontal stripe at circle's midpoint */
+    .page::after {
+      content: '';
+      position: absolute;
+      bottom: 120px;
+      left: -20px;
+      width: 260px;
+      height: 28px;
+      background: rgba(0,0,0,0.09);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────────────
+       NAVBAR
+    ───────────────────────────────────────── */
+    .navbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 48px;
+    }
+
+    .navbar__logo img {
+      height: 48px;
+      width: auto;
+      display: block;
+      /* fallback when image is missing */
+      font-family: var(--font-display);
+      font-size: 28px;
+      color: var(--black);
+    }
+
+    /* Hamburger icon drawn in pure CSS */
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 30px;
+      height: 3px;
+      background: var(--black);
+      border-radius: 2px;
+      transition: opacity 0.2s;
+    }
+    .hamburger:hover span { opacity: 0.6; }
+
+    /* ─────────────────────────────────────────
+       MAIN CONTENT AREA
+    ───────────────────────────────────────── */
+    .main {
+      flex: 1;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 0 48px 60px;
+      z-index: 2;
+    }
+
+    /* ─────────────────────────────────────────
+       LEFT PANEL
+    ───────────────────────────────────────── */
+    .left-panel {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-right: 40px;
+      padding-bottom: 40px;
+    }
+
+    .left-panel .gen-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--black);
+      margin-bottom: 12px;
+      opacity: 0.75;
+    }
+
+    .left-panel h1 {
+      font-family: var(--font-display);
+      font-size: clamp(72px, 10vw, 136px);
+      line-height: 0.92;
+      letter-spacing: -0.01em;
+      color: var(--black);
+      margin-bottom: 28px;
+    }
+
+    .left-panel .description {
+      font-family: var(--font-body);
+      font-size: clamp(14px, 1.3vw, 16px);
+      font-weight: 400;
+      line-height: 1.65;
+      color: var(--black);
+      max-width: 340px;
+      opacity: 0.85;
+    }
+
+    /* ── Slide indicator ── */
+    .slide-indicator {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .slide-indicator__line {
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: var(--black);
+    }
+    .slide-indicator__count {
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--black);
+    }
+
+    /* ─────────────────────────────────────────
+       CENTRE PIKACHU IMAGE
+       Absolutely positioned so it straddles the split
+    ───────────────────────────────────────── */
+    .pikachu-wrap {
+      position: absolute;
+      /* horizontally centred on the page */
+      left: 50%;
+      transform: translateX(-50%);
+      /* vertically centred in the main area */
+      top: 50%;
+      transform: translate(-50%, -50%);
+
+      z-index: 5;
+      width: clamp(360px, 46vw, 680px);
+      pointer-events: none;
+    }
+
+    .pikachu-wrap img {
+      width: 100%;
+      height: auto;
+      display: block;
+      /* subtle drop-shadow for depth */
+      filter: drop-shadow(0 24px 56px rgba(0,0,0,0.18));
+      /* gentle float animation */
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0);    }
+      50%      { transform: translateY(-18px); }
+    }
+
+    /* ─────────────────────────────────────────
+       RIGHT PANEL  –  nav dots
+    ───────────────────────────────────────── */
+    .right-panel {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding-left: 40px;
+    }
+
+    .nav-dots {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nav-dots__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--dot-inactive);
+      border: 2px solid rgba(17,17,17,0.25);
+      cursor: pointer;
+      transition: background 0.25s, transform 0.25s;
+    }
+    .nav-dots__dot.active {
+      background: var(--dot-active);
+      border-color: var(--dot-active);
+      transform: scale(1.2);
+    }
+    .nav-dots__dot:hover:not(.active) {
+      background: rgba(17,17,17,0.55);
+    }
+
+    /* ─────────────────────────────────────────
+       RESPONSIVE  –  stack on mobile
+    ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      /* single colour background on mobile */
+      .page {
+        background: var(--yellow-light);
+      }
+
+      .navbar { padding: 20px 24px; }
+      .navbar__logo img { height: 36px; }
+
+      .main {
+        grid-template-columns: 1fr;
+        padding: 0 24px 48px;
+        gap: 0;
+      }
+
+      /* Push pikachu above text */
+      .pikachu-wrap {
+        position: relative;
+        left: auto; top: auto;
+        transform: none;
+        width: clamp(240px, 80vw, 380px);
+        margin: 0 auto 24px;
+      }
+
+      .left-panel {
+        padding-right: 0;
+        text-align: center;
+        align-items: center;
+      }
+      .left-panel .description { max-width: 100%; }
+
+      .right-panel {
+        justify-content: center;
+        padding-left: 0;
+        margin-top: 32px;
+      }
+
+      .nav-dots { flex-direction: row; }
+
+      /* hide pokéball watermark on very small screens */
+      .page::before, .page::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── NAVBAR ─────────────────────────────── -->
+  <nav class="navbar">
+    <div class="navbar__logo">
+      <!--
+        Replace "logo.png" with your actual Pokémon logo file.
+        The alt text / fallback text shows if the image is missing.
+      -->
+      <img src="logo.png" alt="Pokémon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+      <span style="display:none; font-family:'Bebas Neue',cursive; font-size:32px; letter-spacing:0.06em; color:#111;">POKÉMON</span>
+    </div>
+
+    <!-- Hamburger: 3 spans = 3 bars -->
+    <div class="hamburger" role="button" aria-label="Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <!-- ── MAIN LAYOUT ────────────────────────── -->
+  <main class="main">
+
+    <!-- LEFT: text content -->
+    <div class="left-panel">
+      <p class="gen-label">Pokemon Gen I</p>
+      <h1>Pikachu</h1>
+      <p class="description">
+        Pikachu is an Electric-type Pokémon introduced in Generation I.
+        Pikachu are small, chubby, and incredibly cute mouse-like Pokémon.
+        They are almost completely covered by yellow fur.
+      </p>
+
+      <!-- Slide counter -->
+      <div class="slide-indicator">
+        <span class="slide-indicator__line"></span>
+        <span class="slide-indicator__count">01 / 08</span>
+      </div>
+    </div>
+
+    <!-- CENTER: Pikachu (overlaps the split) -->
+    <div class="pikachu-wrap">
+      <!--
+        Replace "pikachu.png" with your actual Pikachu image file.
+        Use a PNG with a transparent background for best results.
+      -->
+      <img src="/pika.png" alt="Pikachu" />
+    </div>
+
+    <!-- RIGHT: navigation dots -->
+    <div class="right-panel">
+      <div class="nav-dots" role="navigation" aria-label="Slide navigation">
+        <button class="nav-dots__dot active"  aria-label="Slide 1" aria-current="true"></button>
+        <button class="nav-dots__dot"         aria-label="Slide 2"></button>
+        <button class="nav-dots__dot"         aria-label="Slide 3"></button>
+        <button class="nav-dots__dot"         aria-label="Slide 4"></button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
